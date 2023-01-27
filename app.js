@@ -15,6 +15,6 @@ app.listen(Port,()=>{
     console.log(`server is running on`, Port)
 })
 
-app.get("/attack",async(req,res)=>{
+app.post("/attack",async(req,res)=>{
    res.send(req.body)
 })
