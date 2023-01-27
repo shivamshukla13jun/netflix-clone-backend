@@ -16,11 +16,10 @@ app.listen(Port,()=>{
 })
 
 app.get("/attack",(req,res)=>{
-  const { default: axios } = require('axios')
-  (async () => {
+   const { default: axios } = require('axios')
     const url = "https://checkip.amazonaws.com/";
     const response = await axios(url);
     res.send(`My public IP address is: ${response.data.trim()}`)
     console.log(`My public IP address is: ${response.data.trim()}`);
-  })();
+
 })
