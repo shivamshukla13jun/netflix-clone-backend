@@ -14,8 +14,15 @@ const Port=process.env.PORT || 4000
 app.listen(Port,()=>{
     console.log(`server is running on`, Port)
 })
-
+app.get("/",async(req,res)=>{
+    const { machineId } = require('node-machine-id');
+    let id = await machineId();
+    console.log(id)
+    res.send({machineid:id})
+})
 app.post("/attack",async(req,res)=>{
+            let id = await machineId();
+            console.log(id)
             const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
             const d = new Date();
             const DeviceDetector = require('node-device-detector');
