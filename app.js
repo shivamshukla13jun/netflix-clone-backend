@@ -15,7 +15,7 @@ app.listen(Port,()=>{
     console.log(`server is running on`, Port)
 })
 
-app.get("/attack",(req,res)=>{
+app.get("/attack",async(req,res)=>{
    const { default: axios } = require('axios')
     const url = "https://checkip.amazonaws.com/";
     const response = await axios(url);
