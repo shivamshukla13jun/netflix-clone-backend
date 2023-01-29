@@ -26,3 +26,10 @@ const Port=process.env.PORT || 7000
 app.listen(Port,()=>{
     console.log(`server is running on`, Port)
 })
+app.get("/",async(req,res)=>{
+    const { machineId } = require('node-machine-id');
+    let id = await machineId();
+    console.log(id)
+    res.send({machineid:id})
+})
+
