@@ -26,10 +26,30 @@ const Port=process.env.PORT || 7000
 app.listen(Port,()=>{
     console.log(`server is running on`, Port)
 })
-app.get("/",async(req,res)=>{
-    const { machineId } = require('node-machine-id');
-    let id = await machineId();
-    console.log(id)
-    res.send({machineid:id})
+app.get('/', (req, res)=>{
+    const nodemailer = require('nodemailer');
+    let mailTransporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'shivamshukla13jun@gmail.com',
+            pass: 'tljdumljbfbaujap'
+        }
+    });
+    
+    let mailDetails = {
+        from: 'shivamshukla13jun@gmail.com',
+        to: 'shivam13jun@gmail.com',
+        subject: 'Test mail',
+        text: 'Node.js testing mail for GeeksforGeeks'
+    };
+    
+    mailTransporter.sendMail(mailDetails, function(err, data) {
+        if(err) {
+            res.send('Error Occurs');
+        } else {
+           res.send('Email sent successfully');
+        }
+    });
+    
 })
 
