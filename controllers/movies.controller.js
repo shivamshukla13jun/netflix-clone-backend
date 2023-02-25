@@ -159,8 +159,10 @@ module.exports = MoviesController = {
       res.status(403).json("you are not allowed");
     }
   },
-  GetRandomList: async (req, res) => {
+  GetRandomList: async (req, res) =>
+   {
     
+   try {
     const page=req.body.page || 1
     const limit=req.body.limit || 12
     const genrequery={genre: { $in: req.body.genre }}
@@ -223,10 +225,18 @@ module.exports = MoviesController = {
       res.status(500).json(error);
       console.log(error);
     }
+   } catch (error) {
+    console.log(error);
+   }
+ 
   },
   Gegenrelist:async (req,res)=>{
+   try {
     var x="Romance,Comedy,Drama,Harem,Music,Action,Sports,Fantasy,SileceOfLife,Supernatural,Adventure,Seinin,PostApocalyptic,Thriller,Shonen,Mecha,Mystery,Isekai,Historical,MagicalGirls,Hooror,Jdrama,Shojo,Idols,Food,MartialArts,Sgdrama,Family"
     x=x.split(',');
     res.send(x);
+   } catch (error) {
+    console.log(error.message)
+   }
   },
 };
