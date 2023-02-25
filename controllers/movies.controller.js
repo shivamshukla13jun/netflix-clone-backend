@@ -5,8 +5,7 @@ const Animedata = require("./animedata");
 const API_KEY = "efdd474fc85772c8ecc497550ca8a0ac";
 const imagePath = "https://image.tmdb.org/t/p/original";
 const TrendingPage = `https://api.themoviedb.org/3/trending/all/week?api_key=${API_KEY}&language=en-US`;
-const movieTrailer=require('movie-trailer');
-const get_youtube_thumbnail = require("./yotube");
+
 module.exports = MoviesController = {
   Add: async (req, res) => {
     // if(req.user.isAdmin){
