@@ -1,9 +1,30 @@
-const mongoose=require('mongoose');
-require('dotenv').config()
+require('dotenv').config();
+const mongoose = require('mongoose');
 // getting-started.js
-
-async function main() {
-  await mongoose.connect('mongodb+srv://shivam:shivam123@cluster0.7ohdwhm.mongodb.net/netflix-clone',
-  {useUnifiedTopology: true,useNewUrlParser: true});
+const username = "shivam";
+const password = "shivam123";
+const cluster = "cluster0.7ohdwhm";
+const dbname = "netflix-clone";
+const mongouri=`mongodb+srv://${username}:${password}@${cluster}.mongodb.net/${dbname}`
+const main= async () => {
+  try {
+    // Connect to MongoDB
+    mongoose.set('useCreateIndex', true);
+    mongoose
+      .connect(mongouri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false
+      })
+      .then(() =>
+        console.log(`MongoDB Connected`)
+      )
+      .catch(err => console.log(err));
+  } catch (error) {
+    return null;
   }
+};
   main()
+
+
+ 

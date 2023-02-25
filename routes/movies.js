@@ -10,5 +10,6 @@ router.put("/update/:id",verify,moviesController.UpdateById)
 router.put("/update",verify,moviesController.Update)
 router.delete("/delete/:id",verify,moviesController.Delete)
 router.post("/random",moviesController.GetRandomList)
+router.get("/cat",moviesController.Gegenrelist)
 router.get("/",moviesController.GetAllList)
 module.exports=router
