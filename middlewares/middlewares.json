@@ -1,0 +1,12 @@
+{
+    "SqlDetectorMiddlware": true,
+    "BotMiddleware": true,
+    "VpnProtectMiddlware": true,
+    "SpamMiddleware": true,
+    "xssInjectionDetectorMiddlware": true,
+    "checkHTMLMiddlware": true,
+    "NosqlDetectorMiddlware": true,
+    "commandlineinjectionMiddlware": true,
+    "ldapInjectionDetectorMiddlware": false,
+    "BlockUserMiddlware": true
+}

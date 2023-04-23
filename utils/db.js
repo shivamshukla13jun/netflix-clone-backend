@@ -5,13 +5,13 @@ const username = "shivam";
 const password = "shivam123";
 const cluster = "cluster0.7ohdwhm";
 const dbname = "netflix-clone";
-const mongouri=`mongodb+srv://${username}:${password}@${cluster}.mongodb.net/${dbname}`
+// const mongouri=`mongodb+srv://${username}:${password}@${cluster}.mongodb.net/${dbname}`
 const main= async () => {
   try {
     // Connect to MongoDB
     mongoose.set('useCreateIndex', true);
     mongoose
-      .connect(mongouri, {
+      .connect(process.env.MONGO_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         useFindAndModify: false

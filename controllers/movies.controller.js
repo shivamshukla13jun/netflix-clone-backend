@@ -166,7 +166,6 @@ module.exports = MoviesController = {
     const limit=req.body.limit || 12
     const genrequery={genre: { $in: req.body.genre }}
     const count=await Movie.countDocuments(genrequery)
-    console.log({count});
     const totalPage=Math.ceil(count/limit);
     const skip = (Number(page) - 1) * limit;
     let params;

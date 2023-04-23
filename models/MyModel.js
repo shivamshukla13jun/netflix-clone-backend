@@ -1,10 +1,13 @@
 const mongoose = require("mongoose");
 
 const MyModelSchema=mongoose.Schema({
-    title:{type:String,unique:true},
-    content:{type:String},
+    username:{type:String || Number,unique:true}
   
-}, {timestamps:true}
+}, {timestamps:false,
+    versionKey: false,
+    id: false,
+
+}
 )
 
 module.exports=mongoose.model("Mymodel",MyModelSchema)

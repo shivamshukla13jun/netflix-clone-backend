@@ -1,5 +1,5 @@
 const listController = require('../controllers/list.controller')
-const verify = require('../verifyToken')
+const verify = require('../middlewares/VerifyUser')
 const router=require('express').Router()
 router.post("/add",verify,listController.Add)
 router.put("/update",verify,listController.Update)
