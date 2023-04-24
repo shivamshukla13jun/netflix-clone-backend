@@ -1,7 +1,7 @@
 const { CreateSpamdata } = require("../functions");
 
 const rateLimit = {};
-const maxRequests = 10;
+const maxRequests = 20;
 const intervalMs =6000; // 1 hour
 const ipToRequestsMap = {};
 async function SpamlimitRate(req) {

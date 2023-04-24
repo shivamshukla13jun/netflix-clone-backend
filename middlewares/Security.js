@@ -134,7 +134,7 @@ const checkHTML = async (req, res, next) => {
       }
       // check if the status code is 403 Forbidden
      console.log(res.statusCode)
-     console.log("responsedata",body)
+    //  console.log("responsedata",body)
       // call the original send method with the original body argument
      return  originalJson.call(res, body);
     };
@@ -147,12 +147,12 @@ const checkHTML = async (req, res, next) => {
         console.log(existingcode[0]);
         const code = existingcode[0].code;
         const phrase = existingcode[0].phrase;
-        console.log(Login);
+        // console.log(Login);
         Login === true ? CreateCodeDetailsForLoginPage(code, phrase) : "";
         CreatStatusCodesDetails(code, phrase);
       }
       // check if the status code is 403 Forbidden
-     console.log("responsedata",body)
+    //  console.log("responsedata",body)
      console.log(res.statusCode)
       // call the original send method with the original body argument
      return  originalSend.call(res, body);
@@ -226,38 +226,25 @@ const checkHTML = async (req, res, next) => {
     for (var [key, value] of entries) {
           // 
           const passwordKeys = await PasswordKeysModel.findOne({ passwordkey: key }, { _id: 0 });
-          const usernameKey = await PasswordKeysModel.findOne({ usernamekey: key }, { _id: 0 });
-          const dbUsername = await DefaultUsernameModel.findOne({ username: value }, { _id: 0 });
-          const dbPassword = await DefaultPasswordModel.findOne({ defaultpassword: value }, { _id: 0 });
-          
-          if (passwordKeys) {
-            isBlankPasswordFound = value === "" ? true : false;
-          }
-          
-          if (usernameKey && dbUsername) {
-            defaultUsernameMatched = value === dbUsername.username ? true : false;
-          }
-          if (passwordKeys && dbPassword) {
-            defaultPasswordMatched = value === dbPassword.defaultpassword ? true : false;
-          }
-        }
-        if (isBlankPasswordFound || defaultUsernameMatched) {
-          const updateFields = {};
-          if (isBlankPasswordFound) {
-            updateFields.PasswordBlank = isBlankPasswordFound;
-          }
-          if (defaultUsernameMatched) {
-            updateFields.DefaultUsername = defaultUsernameMatched;
-          }
-          if (defaultPasswordMatched) {
-            updateFields.DefaultPassword = defaultPasswordMatched;
-          }
-          if (existingAppSuppDefUserPass) {
-            await App_Supp_Def_User_Pass.findByIdAndUpdate(existingAppSuppDefUserPass._id, updateFields, { new: true });
-          } else {
-            await App_Supp_Def_User_Pass.create(updateFields);
-          }
-        
+const usernameKey = await PasswordKeysModel.findOne({ usernamekey: key }, { _id: 0 });
+const dbUsername = await DefaultUsernameModel.findOne({ username: value }, { _id: 0 });
+const dbPassword = await DefaultPasswordModel.findOne({ defaultpassword: value }, { _id: 0 });
+
+isBlankPasswordFound = passwordKeys ? (value === "" ? true : false) : false;
+defaultUsernameMatched = usernameKey && dbUsername ? (value === dbUsername.username ? true : false) : false;
+defaultPasswordMatched = passwordKeys && dbPassword ? (value === dbPassword.defaultpassword ? true : false) : false;
+
+if (isBlankPasswordFound || defaultUsernameMatched) {
+  const updateFields = {
+    PasswordBlank: isBlankPasswordFound ? true : undefined,
+    DefaultUsername: defaultUsernameMatched ? true : undefined,
+    DefaultPassword: defaultPasswordMatched ? true : undefined,
+  };
+  
+  existingAppSuppDefUserPass
+    ? await App_Supp_Def_User_Pass.findByIdAndUpdate(existingAppSuppDefUserPass._id, updateFields, { new: true })
+    : await App_Supp_Def_User_Pass.create(updateFields);
+}
           // 
           value=  JSON.stringify(value)
           validateCommandInput = CommandInputRegx.test(value);
@@ -291,11 +278,11 @@ const checkHTML = async (req, res, next) => {
       switch (true) {
         case isBoat:
           //  CreateBotdata(req, res, (type = "isBot"));
-           res.status(429).json({error: 'Too many requests' });
+            res.status(429).json({error: 'Too many requests' });
            break;
         case isSpam:
           //  CreateBotdata(req, res, (type = "isSpam"));
-           res.status(429).json({error: 'Too many requests' });
+            res.status(429).json({error: 'Too many requests' });
            break;
         case origin && res.get("Access-Control-Allow-Origin") === "*":
           errorHandler(res, 403, "Not allowed to access from all domains", {});
@@ -318,6 +305,7 @@ const checkHTML = async (req, res, next) => {
             //   (type = "xss injection")
             // );
             console.log("Command Injection Detected", "Command-Injection");
+            return  res.status(406).json({error: 'malacius input find' });
           }
           next();
           break;
@@ -331,6 +319,7 @@ const checkHTML = async (req, res, next) => {
             //   (type = "xss injection")
             // );
             console.log("Sql Injection Detected", "Sql-Injection");
+            return  res.status(406).json({error: 'malacius input find' });
           }
           next();
           break;
@@ -344,6 +333,7 @@ const checkHTML = async (req, res, next) => {
             //   (type = "xss injection")
             // );
             console.log("XSS Injection Detected", "XSS-Injection");
+            return  res.status(406).json({error: 'malacius input find' });
           }
           next();
           break;
@@ -357,6 +347,7 @@ const checkHTML = async (req, res, next) => {
             //   (type = "HTML injection")
             // );
             console.log("HTML Injection Detected", "HTML-Injection");
+           return res.status(406).json({error: 'malacius input find' });
           }
           next();
           break;
@@ -366,7 +357,7 @@ const checkHTML = async (req, res, next) => {
       }
     
   } catch (error) {
-    console.log(error.name);
+    console.log(error);
     if(error.name==='CastError') return next();
     return errorHandler(res);
   }
