@@ -4,7 +4,7 @@ const rateLimit = {};
 const maxRequests = 10;
 const intervalMs =6000; // 1 hour
 const ipToRequestsMap = {};
-function SpamlimitRate(req, res, next) {
+async function SpamlimitRate(req) {
   const ip = req.ip;
   const now = Date.now();
   // If IP address has not made any requests yet, initialize requests count to 0
@@ -25,15 +25,18 @@ function SpamlimitRate(req, res, next) {
   }
 
   // If the requests count is greater than or equal to the max requests, return a 429 error
-  if (count >= maxRequests) {
-    CreateSpamdata(req, res, (type = "Spam"));
-    res.status(429).json({
-      error: 'Too many requests'
-    });
-  } else {
-    ipToRequestsMap[ip].count++;
-    ipToRequestsMap[ip].lastRequestTime = now;
-    next();
-  }
+    if (count >= maxRequests) {
+      return true
+      // CreateBotdata(req, res, (type = "isBot"));
+      // res.status(429).json({
+      //   error: 'Too many requests'
+      // });
+    } else {
+      ipToRequestsMap[ip].count++;
+      ipToRequestsMap[ip].lastRequestTime = now;
+      return false
+    }
+  
+
 }
 module.exports = SpamlimitRate;

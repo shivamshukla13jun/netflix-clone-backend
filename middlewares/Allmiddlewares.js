@@ -2,18 +2,19 @@
 const xmlparser = require('express-xml-bodyparser');
 // import all middlewares Here
 const {  SessionMiddleware, CheckResponseCode,
- checkHTML, ldapInjectionDetector,NosqlDetector } = require("./Security")
+ checkHTML, ldapInjectionDetector,NosqlDetector,CheckResponse } = require("./Security")
 const { detectXmlInjection } = require('./XmlInjectiondetector');
 const BotlimitRate = require('./RateLimiter/BotlimitRate');
 const SpamlimitRate = require('./RateLimiter/SpamlimitRate');
 const publicMiddlewares = [
-  SpamlimitRate,
-  BotlimitRate,
+  // SpamlimitRate,
+  // BotlimitRate,
   checkHTML,
-  detectXmlInjection,
-  ldapInjectionDetector,
   NosqlDetector,
-  CheckResponseCode,
+  // CheckResponse
+  // detectXmlInjection,
+  // ldapInjectionDetector,
+  // CheckResponseCode,
   // SessionMiddleware,
 ];
 

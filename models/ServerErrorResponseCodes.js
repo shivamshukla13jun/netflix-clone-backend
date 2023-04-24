@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const ErrorCodesModelSchema=new Schema({
     ErrorStatuscode: {
-        type: Number
+        type: Number,unique: true,
       },
     message: {
-    type: String
+    type: String,unique: true,
     },
 },{
     timestamps:true,

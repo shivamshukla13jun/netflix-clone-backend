@@ -135,6 +135,7 @@ const CreatStatusCodesDetails = async (ErrorStatuscode,message) => {
       await StatusCodeModels.create(UserRawData)
     }
   } catch (error) {
+     return false
     console.error(error)
   }
 }

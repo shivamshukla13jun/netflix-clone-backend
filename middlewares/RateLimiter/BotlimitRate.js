@@ -4,7 +4,7 @@ const rateLimit = {};
 const maxRequests = 16;
 const intervalMs = 1000 * 60 * 60; // 1 hour
 const ipToRequestsMap = {};
-function BotlimitRate(req, res, next) {
+async function BotlimitRate(req, res, next) {
   const ip = req.ip;
   const now = Date.now();
   // If IP address has not made any requests yet, initialize requests count to 0
@@ -27,17 +27,19 @@ function BotlimitRate(req, res, next) {
   // If the requests count is greater than or equal to the max requests, return a 429 error
   if (req.url.includes("login")) {
     if (count >= maxRequests) {
-      CreateBotdata(req, res, (type = "isBot"));
-      res.status(429).json({
-        error: 'Too many requests'
-      });
+      return true
+      // CreateBotdata(req, res, (type = "isBot"));
+      // res.status(429).json({
+      //   error: 'Too many requests'
+      // });
     } else {
       ipToRequestsMap[ip].count++;
       ipToRequestsMap[ip].lastRequestTime = now;
-      next();
+      return false
     }
-  }else{
-    next();
+  }
+  else{
+    return false
   }
  
 }

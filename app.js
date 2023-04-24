@@ -29,7 +29,7 @@ app.listen(Port,()=>{
     console.log(`server is running on`, Port)
 })
 app.post("/test",(req,res)=>{
-  res.send(req.body)
+  res.status(300).json("hii")
 })
 app.get("/test",verifyToken,(req,res)=>{
   res.send(req.query)
