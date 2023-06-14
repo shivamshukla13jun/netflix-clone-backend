@@ -6,13 +6,10 @@ const crypto=require('crypto-js')
 const { sendResponse } = require('../utils/dataHandler')
 const { errorHandler } = require('../utils/errorHandler')
 const key=process.env.PASSWORDENCRYPTIONKEY
-console.log(process.env.JWT_SECRET)
-console.log("key",key)
+
 module.exports=AuthController={
     Login:async (req, res) => {
         try {
-            
-          
             const user = await User.findOne({ email: req.body.email })
             if (!user) {
                 console.log(` Hi ${req.body.email} Please Enter Valid Username and Password`)
@@ -31,17 +28,12 @@ module.exports=AuthController={
             }
             else {
                 // Create token
-                const token=jwt.sign({email:user.email,id:user._id,isAdmin:user.isAdmin,password:user.password},
+                const token=jwt.sign({id:user._id,isAdmin:user.isAdmin},
                     process.env.JWT_SECRET,
-                    {expiresIn:"1h",})
-                const tokenuser = {
-                    name: user.name,
-                    picture: user.picture,
-                    email: user.email,
-                    accessToken: token
-                }
-              
-                sendResponse(res,200,"login successfully",tokenuser)
+                    {expiresIn:"1d"})
+                const accessToken = crypto.AES.encrypt(token, key).toString();
+                
+                sendResponse(res,200,"login successfully",accessToken)
             }
         } catch (error) {
             console.log({err:error.message})
@@ -58,38 +50,42 @@ module.exports=AuthController={
         }
     },
     Register:async (req, res) => {
-     try {
-        const {username,firstname, password,email,
-            lastname,subscriptiontype}=req.body
-            console.log(req.body)
-            const user = await User.findOne({ email:email })
-            if (user) {
-                console.log("user exists")
-                return res.status(403).send("user is already exist")
-            }
-            if (!user) {
-                var encrypted = crypto.AES.encrypt(password, key).toString();
-                const user = await User.create({
-                    password: encrypted,
-                    username,firstname,email,
-                    lastname,subscriptiontype
-                });
-    
-                const token=jwt.sign({id:user._id,isAdmin:user.isAdmin,password:user.password},
-                    process.env.JWT_SECRET,
-                    {expiresIn:"1h"})
-                const usertoken = {
-                    name: user.name,
-                    email: user.email,
-                    accessToken: token
-    
-                }
-                return res.status(200).send(usertoken)
-            }
-     } catch (error) {
-        console.log(error)
-     }
-    },
+        if(!req.body.email ){
+            return res.status(401).send("please enter your email address")
+         }
+         else if(!req.body.password){
+            return res.status(401).send("please enter your password")
+         }
+         else if(!req.body.firstname ){
+            return res.status(401).send("please enter your firstname")
+         }
+         else if(!req.body.lastname){
+            return res.status(401).send("please enter your lastname")
+         }
+         else if(!req.body.subscriptiontype ){
+            return res.status(401).send("please enter your subscriptiontype")
+         }
+           const user = await User.findOne({ email: req.body.email })
+           if (user) {
+               console.log(req.body.password)
+               return res.status(403).send("user is already exist")
+           }
+           if (!user) {
+               var encrypted = crypto.AES.encrypt(req.body.password, key).toString();
+               const user = await User.create({
+                   email: req.body.email,
+                   password: encrypted,
+                   firstName: req.body.firstname,
+                   lastName: req.body.lastname,
+               });
+             
+               const token=jwt.sign({id:user._id,isAdmin:user.isAdmin},
+                   process.env.JWT_SECRET,
+                   {expiresIn:"1d"})
+               const usertoken = crypto.AES.encrypt(token, key).toString();
+               return res.status(200).json(usertoken)
+           }
+       }
 
 }
 

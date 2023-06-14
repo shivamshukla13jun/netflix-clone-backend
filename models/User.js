@@ -8,7 +8,7 @@ const UserSchema=mongoose.Schema({
     password:{type:String,required:true,unique:true},
     profilePic:{type:String,default:""},
     isAdmin:{type:Boolean,default:false},
-    subscriptiontype:{type:String,required:true}
+    // subscriptiontype:{type:String,required:true}
 }, {timestamps:true}
 )
 

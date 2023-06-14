@@ -35,8 +35,6 @@ module.exports=UserController={
         } else{
           res.status(403).json("you can Update Only You Account")
         }
-     
-  
      },
     DeleteById:async(req,res)=>{
         if(req.user.id===req.params.id || req.user.isAdmin){

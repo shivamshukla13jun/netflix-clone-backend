@@ -1,15 +1,15 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 // getting-started.js
-const username = "shivam";
-const password = "shivam123";
-const cluster = "cluster0.7ohdwhm";
-const dbname = "netflix-clone";
-// const mongouri=`mongodb+srv://${username}:${password}@${cluster}.mongodb.net/${dbname}`
+const username = process.env.DBUSERNAME;
+const password = process.env.DBPASSWORD;
+const cluster =process.env.CLUSTER
+const dbname = process.env.DBNAME
+const mongouri=`mongodb+srv://${username}:${password}@${cluster}.mongodb.net/${dbname}`
 const main= async () => {
   try {
     // Connect to MongoDB
-    mongoose.set('useCreateIndex', true);
+     await  mongoose.set('useCreateIndex', true);
     mongoose
       .connect(process.env.MONGO_URI, {
         useNewUrlParser: true,
@@ -19,12 +19,12 @@ const main= async () => {
       .then(() =>
         console.log(`MongoDB Connected`)
       )
-      .catch(err => console.log(err));
+      .catch(err => console.log("mongoerror",err.message));
   } catch (error) {
-    return null;
+    console.log("mongoerror",error.message);
   }
 };
-  main()
+module.exports=main
 
 
  

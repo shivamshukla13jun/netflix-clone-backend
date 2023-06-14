@@ -1,19 +1,18 @@
 const router=require('express').Router()
 const moviesController = require('../controllers/movies.controller')
-const verifyToken = require('../middlewares/VerifyUser')
-
+const {authAdminMiddleware,authUserMiddleware} = require('../middlewares/AuthMiddleware')
 const upload = require('./middlewares/uploadFile')
 router.get("/find/:id",moviesController.FindById)
 var uploadMovie = upload.fields([{name:'img',maxCount:1},{name:'imgSm',maxCount:1},{name:'imgTitle',maxCount:1},{name:'trailer',maxCount:1},{name:'video',maxCount:1}])
 router.post("/add",uploadMovie,moviesController.Add)
 
-router.post("/multipleadd",uploadMovie,moviesController.MultipleAdd)
-router.put("/update/:id",verifyToken,moviesController.UpdateById)
-router.put("/update",verifyToken,moviesController.Update)
-router.delete("/delete/:id",verifyToken,moviesController.Delete)
+router.post("/multipleadd",authAdminMiddleware,uploadMovie,moviesController.MultipleAdd)
+router.put("/update/:id",authAdminMiddleware || authAdminMiddleware,moviesController.UpdateById)
+router.put("/update",authAdminMiddleware,moviesController.Update)
+router.delete("/delete/:id",authAdminMiddleware,moviesController.Delete)
 router.post("/random",moviesController.GetRandomList)
 router.get("/cat",moviesController.Gegenrelist)
-router.get("/",moviesController.GetAllList)
+router.get("/",authAdminMiddleware,moviesController.GetAllList)
 router.post("/addcsv",async(req,res)=>{
     const fs = require('fs');
    const csv = require('csv-parser');
@@ -21,6 +20,7 @@ router.post("/addcsv",async(req,res)=>{
    fs.createReadStream('./animes.csv')
     .pipe(csv())
     .on('data', (data) => {
+      
       results.push(data);
     })
     .on('end', () => {

@@ -4,7 +4,7 @@ const ListSchema=mongoose.Schema({
     title:{type:String},
     type:{type:String},
     genre:{type:String},
-    content:{type:Array},
+    content:{type:[mongoose.Types.ObjectId],ref:"Movie"},
 }, {timestamps:true}
 )
 

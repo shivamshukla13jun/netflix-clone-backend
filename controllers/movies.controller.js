@@ -1,11 +1,6 @@
 const { default: axios } = require("axios");
 const mongoose=require('mongoose')
-const Movie = require("../models/Movie");
-const Animedata = require("./animedata");
-const API_KEY = "efdd474fc85772c8ecc497550ca8a0ac";
-const imagePath = "https://image.tmdb.org/t/p/original";
-const TrendingPage = `https://api.themoviedb.org/3/trending/all/week?api_key=${API_KEY}&language=en-US`;
-
+const Movie=require('../models/Movie')
 module.exports = MoviesController = {
   Add: async (req, res) => {
     // if(req.user.isAdmin){
@@ -14,7 +9,6 @@ module.exports = MoviesController = {
         title: req.body.title,
         desc: req.body.desc,
         img: req.files.img[0].filename,
-        imgTitle: req.files.img[0].filename,
         imgSm: req.files.imgSm[0].filename,
         trailer: req.files.trailer[0].filename,
         video: req.files.video[0].filename,
@@ -50,33 +44,10 @@ module.exports = MoviesController = {
     //     }
   },
   MultipleAdd: async (req, res) => {
-   
+   try {
     // if(req.user.isAdmin){
-   
-      const dataarray = []
-    try {
-     Animedata.map(async(val)=>{
-      let StringConverter = val.category
-     StringConverter= StringConverter.toString()
-     dataarray.push(StringConverter)
-    
-      let obj= {
-        title:val.anime,
-        imgSm:val.anime_img,
-        url:val.anime_url,
-        episodes:val.anime_episodes,
-        rate:val.rate,
-        genre:val.category
-       }
-       
-        //await  dataarray.push(obj)
-     })
-    //  console.log(dataarray.length)
-    
-      // let saveddata = await Movie.insertMany(dataarray);
-      // // // await dataarray
-      //  res.send(saveddata);
-      res.send(dataarray)
+      let saveddata = await Movie.insertMany();
+      res.send(req.body)
     } catch (error) {
       res.status(500).json(error);
       console.log(error);
@@ -146,7 +117,7 @@ module.exports = MoviesController = {
     }
   },
   GetAllList: async (req, res) => {
-    if (req.user.isAdmin) {
+    // if (req.user.isAdmin) {
       try {
         const movies = await Movie.find();
         res.status(200).json(movies);
@@ -154,9 +125,10 @@ module.exports = MoviesController = {
         res.status(500).json(error);
         console.log(error);
       }
-    } else {
-      res.status(403).json("you are not allowed");
-    }
+    // }
+    //  else {
+    //   res.status(403).json("you are not allowed");
+    // }
   },
   GetRandomList: async (req, res) =>
    {
