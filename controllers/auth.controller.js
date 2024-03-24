@@ -1,91 +1,51 @@
-const dotenv=require('dotenv')
-dotenv.config()
+require('dotenv').config();
 const User = require('../models/User')
 const jwt=require('jsonwebtoken')
-const crypto=require('crypto-js')
-const { sendResponse } = require('../utils/dataHandler')
-const { errorHandler } = require('../utils/errorHandler')
-const key=process.env.PASSWORDENCRYPTIONKEY
-
+const CryptoJS=require('crypto-js')
 module.exports=AuthController={
-    Login:async (req, res) => {
+    Login:async (req, res,next) => {
+        const user = await User.findOne({ email: req.body.email})
         try {
-            const user = await User.findOne({ email: req.body.email })
-            if (!user) {
-                console.log(` Hi ${req.body.email} Please Enter Valid Username and Password`)
-                throw new Error(`Hi ${req.body.email} Please Enter Valid Username and Password`)
-               
-                return sendResponse(res,401,`Hi ${req.body.email} Please Enter Valid Username and Password`,{})
-               
-                return res.status(401).send(`Hi ${req.body.email} Please Enter Valid Username and Password`)
+          !user && res.status(401).json("Wrong Password or Username") 
+                const bytes=CryptoJS.AES.decrypt(user.password,process.env.SECRET_KEY);
+                const originalpassword=bytes.toString(CryptoJS.enc.Utf8)
+                originalpassword!==req.body.password && res.status(401).json("Wrong Password or Username")
+                const accessToken=jwt.sign({id:user._id,isAdmin:user.isAdmin,password:user.password},
+                    process.env.SECRET_KEY,
+                    {expiresIn:"5d"})
+                    const {...info}=user._doc
+                res.json({accessToken,...info})
+        
+    
+        } catch (error) {
+            res.status(500).json(error)
+            console.log(error)
+        }
+    
+    },
+    Register:async (req, res,next) => {
+        const newUser = new User({
+            email: req.body.email,
+            password:CryptoJS.AES.encrypt(req.body.password,process.env.SECRET_KEY).toString()
+        })
+        try {
+            const existUser = await User.findOne({ email: req.body.email})
+            if(existUser){
+                res.status(400).json("Email already registred")
             }
-            var OriginalPassword = crypto.AES.decrypt(user.password, key).toString(crypto.enc.Utf8)
-            if (OriginalPassword != req.body.password) {
-                console.log(`Hi ${req.body.email} Please Enter Valid Username and Password`)
-                throw new Error(`Hi ${req.body.email} Please Enter Valid Username and Password`)
-                return sendResponse(res,401,`Hi ${req.body.email} Please Enter Valid Username and Password`,{})
-                return res.status(401).send(`Hi ${req.body.email} Please Enter Valid Username and Password`);
-            }
-            else {
-                // Create token
-                const token=jwt.sign({id:user._id,isAdmin:user.isAdmin},
-                    process.env.JWT_SECRET,
-                    {expiresIn:"1d"})
-                const accessToken = crypto.AES.encrypt(token, key).toString();
-                
-                sendResponse(res,200,"login successfully",accessToken)
+            else{
+                const savedUser = await newUser.save()
+                const accessToken=jwt.sign({id:savedUser._id,isAdmin:savedUser.isAdmin,password:savedUser.password},
+                    process.env.SECRET_KEY,
+                    {expiresIn:"5d"})
+                    const {...info}=savedUser._doc
+                res.status(200).json({accessToken,...info})
+                console.log({accessToken,...info})
             }
         } catch (error) {
-            console.log({err:error.message})
-            return errorHandler(res,500,error.message)
-            return res.status(500).send(error)
+            res.status(500).json(error)
         }
     },
-    Logout:async (req, res) => {
-        try {
-            const { token } = req.body
-            jwt.destroy(token)
-        } catch (error) {
-            return {error};
-        }
-    },
-    Register:async (req, res) => {
-        if(!req.body.email ){
-            return res.status(401).send("please enter your email address")
-         }
-         else if(!req.body.password){
-            return res.status(401).send("please enter your password")
-         }
-         else if(!req.body.firstname ){
-            return res.status(401).send("please enter your firstname")
-         }
-         else if(!req.body.lastname){
-            return res.status(401).send("please enter your lastname")
-         }
-         else if(!req.body.subscriptiontype ){
-            return res.status(401).send("please enter your subscriptiontype")
-         }
-           const user = await User.findOne({ email: req.body.email })
-           if (user) {
-               console.log(req.body.password)
-               return res.status(403).send("user is already exist")
-           }
-           if (!user) {
-               var encrypted = crypto.AES.encrypt(req.body.password, key).toString();
-               const user = await User.create({
-                   email: req.body.email,
-                   password: encrypted,
-                   firstName: req.body.firstname,
-                   lastName: req.body.lastname,
-               });
-             
-               const token=jwt.sign({id:user._id,isAdmin:user.isAdmin},
-                   process.env.JWT_SECRET,
-                   {expiresIn:"1d"})
-               const usertoken = crypto.AES.encrypt(token, key).toString();
-               return res.status(200).json(usertoken)
-           }
-       }
 
 }
 

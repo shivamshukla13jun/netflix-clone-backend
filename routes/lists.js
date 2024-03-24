@@ -1,8 +1,10 @@
 const listController = require('../controllers/list.controller')
-const {authAdminMiddleware,authUserMiddleware} = require('../middlewares/AuthMiddleware')
+const verify = require('../middlewares/verifyToken')
 const router=require('express').Router()
-router.post("/",authAdminMiddleware,listController.Add)
-router.put("/:id",authAdminMiddleware,listController.Update)
-router.delete("/:id",authAdminMiddleware,listController.Delete)
-router.get('/',listController.GetAllList)
+
+router.route("/")
+    .post(verify, listController.Add)
+    .put(verify, listController.Update)
+    .delete(verify, listController.Delete)
+    .get(listController.GetAllList);
 module.exports=router

@@ -1,23 +1,26 @@
 const List=require('../models/List')
-
 module.exports=ListController={
-    Add:async(req,res)=>{
+    Add:async(req, res,next)=>{
+        if(req.user.isAdmin){
           try {
-               const newList= new  List(req.body)
+              const newList= new  List(req.body)
                const savedList =  await newList.save()
               res.status(200).json(savedList)
           } catch (error) { 
               res.status(500).json(error)
               console.log(error)
           }
-     
+      }
+      else{
+          res.status(403).json("you are not allowed")
+        }
   
      },
-    Update:async(req,res)=>{
+    Update:async(req, res,next)=>{
         if(req.user.isAdmin){
           try {
-              console.log("fffff",req.body)
-              const newList= await List.findByIdAndUpdate({_id:req.params.id}
+              console.log(req.body)
+              const newList= await List.findByIdAndUpdate({_id:req.body._id}
                  ,{$set:req.body},
                   {new:true}
                   )
@@ -33,7 +36,7 @@ module.exports=ListController={
         }
   
      },
-    Delete:async(req,res)=>{
+    Delete:async(req, res,next)=>{
         if(req.user.isAdmin){
           try {
               await List.findByIdAndDelete(req.params.id)
@@ -48,45 +51,29 @@ module.exports=ListController={
         }
   
      },
-    GetAllList:async(req,res)=>{
+    GetAllList:async(req, res,next)=>{
         const typeQuery=req.query.type
         const genreQuery=req.query.genre
         let list=[]
+        
         try {
+            if(typeQuery){
                 if(genreQuery){
                     list=await List.aggregate([
-                        { "$lookup": {
-                            "from": "movies",
-                            "foreignField": "_id",
-                            "localField": "content",
-                            "as": "content"
-                          }},
+                        {$sample:{size:10}  },
                         {$match:{type:typeQuery,genre:genreQuery}}
                     ])
-                }
-                else if(typeQuery){
+                }else{
                     list=await List.aggregate([
-                        { "$lookup": {
-                            "from": "movies",
-                            "foreignField": "_id",
-                            "localField": "content",
-                            "as": "content"
-                          }},
+                        {$sample:{size:10}  },
                         {$match:{type:typeQuery}}
                     ])
                 }
-                else{
-                    list=await List.aggregate([
-                        {"$lookup": {
-                            "from": "movies",
-                            "foreignField": "_id",
-                            "localField": "content",
-                            "as": "content"
-                          }}
-                    ])
-                }
     
-            
+            }else{
+                list=await List.aggregate([{$sample:{size:10}}])
+               
+            }
             res.status(200).json(list)
         } catch (error) {
             res.status(500).json(error)

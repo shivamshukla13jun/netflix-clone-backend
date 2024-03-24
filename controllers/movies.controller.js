@@ -1,74 +1,61 @@
-const { default: axios } = require("axios");
-const mongoose=require('mongoose')
-const Movie=require('../models/Movie')
+const { ObjectId} = require("mongoose");
+const Movie = require("../models/Movie");
+const API_KEY = "efdd474fc85772c8ecc497550ca8a0ac";
+const imagePath = "https://image.tmdb.org/t/p/original";
+const TrendingPage = `https://api.themoviedb.org/3/trending/all/week?api_key=${API_KEY}&language=en-US`;
 module.exports = MoviesController = {
-  Add: async (req, res) => {
-    // if(req.user.isAdmin){
+  Add: async (req, res, next) => {
     try {
-      const newMovie = new Movie({
-        title: req.body.title,
-        desc: req.body.desc,
-        img: req.files.img[0].filename,
-        imgSm: req.files.imgSm[0].filename,
-        trailer: req.files.trailer[0].filename,
-        video: req.files.video[0].filename,
-        year: req.body.year,
-        limit: req.body.limit,
-        genre: req.body.genre,
-        isSeries: req.body.isSeries,
-      });
+      const payload = { ...req.body, ...req.files };
+      if(typeof payload.genre==="string"){
+        payload.genre=payload.genre.split(",")
+      }
+      console.log("genre",payload.genre)
+      let { error, value } = Movie.joiValidate(payload);
+      // Check for validation errors
+      if (error) {
+        error = new Error(error.details[0].message);
+        error.statusCode = 400; // Set the status code
+        throw error;
+      }
+      const newMovie = new Movie(payload);
       const savedMovie = await newMovie.save();
       console.log(savedMovie);
       res.status(200).json(savedMovie);
     } catch (error) {
-      res.status(500).json(error);
-      console.log(error);
+      next(error);
     }
-    //   }
-    //   else{
-    //       res.status(403).json("you are not allowed")
-    //     }
   },
-  TotalCount: async (req, res) => {
-    // if(req.user.isAdmin){
+  TotalCount: async (req, res, next) => {
     try {
-      const count=await Movie.countDocuments()
-      res.status(200).json({total:count});
+      const count = await Movie.countDocuments();
+      res.status(200).json({ total: count });
     } catch (error) {
       res.status(500).json(error);
       console.log(error);
     }
-    //   }
-    //   else{
-    //       res.status(403).json("you are not allowed")
-    //     }
   },
-  MultipleAdd: async (req, res) => {
-   try {
-    // if(req.user.isAdmin){
-      let saveddata = await Movie.insertMany();
-      res.send(req.body)
-    } catch (error) {
-      res.status(500).json(error);
-      console.log(error);
-    }
-    //   }
-    //   else{
-    //       res.status(403).json("you are not allowed")
-    //     }
-  },
-  FindById: async (req, res) => {
+  MultipleAdd: async (req, res, next) => {
     try {
-      console.log({id:req.params.id})
-      const updatedMovie = await Movie.findById({_id:req.params.id});
-      console.log(updatedMovie)
-          res.send(updatedMovie);
+      let saveddata = await Movie.insertMany(req.body);
+      res.json(saveddata);
     } catch (error) {
       res.status(500).json(error);
       console.log(error);
     }
   },
-  Update: async (req, res) => {
+  FindById: async (req, res, next) => {
+    try {
+      console.log({ id: req.params.id });
+      const updatedMovie = await Movie.findById({ _id: req.params.id });
+      console.log(updatedMovie);
+      res.send(updatedMovie);
+    } catch (error) {
+      res.status(500).json(error);
+      console.log(error);
+    }
+  },
+  Update: async (req, res, next) => {
     if (req.user.isAdmin) {
       try {
         const { img, imgTitle, imgSm, trailer, video } = req.body;
@@ -86,7 +73,7 @@ module.exports = MoviesController = {
       res.status(403).json("you are not allowed");
     }
   },
-  UpdateById: async (req, res) => {
+  UpdateById: async (req, res, next) => {
     if (req.user.isAdmin) {
       try {
         const updatedMovie = await Movie.findByIdAndUpdate(
@@ -103,7 +90,7 @@ module.exports = MoviesController = {
       res.status(403).json("you are not allowed");
     }
   },
-  Delete: async (req, res) => {
+  Delete: async (req, res, next) => {
     if (req.user.isAdmin) {
       try {
         await Movie.findByIdAndDelete(req.params.id);
@@ -116,8 +103,8 @@ module.exports = MoviesController = {
       res.status(403).json("you are not allowed");
     }
   },
-  GetAllList: async (req, res) => {
-    // if (req.user.isAdmin) {
+  GetAllList: async (req, res, next) => {
+    if (req.user.isAdmin) {
       try {
         const movies = await Movie.find();
         res.status(200).json(movies);
@@ -125,88 +112,68 @@ module.exports = MoviesController = {
         res.status(500).json(error);
         console.log(error);
       }
-    // }
-    //  else {
-    //   res.status(403).json("you are not allowed");
-    // }
+    } else {
+      res.status(403).json("you are not allowed");
+    }
   },
-  GetRandomList: async (req, res) =>
-   {
-    
-   try {
-    const page=req.body.page || 1
-    const limit=req.body.limit || 12
-    const genrequery={genre: { $in: req.body.genre }}
-    const count=await Movie.countDocuments(genrequery)
-    const totalPage=Math.ceil(count/limit);
-    const skip = (Number(page) - 1) * limit;
-    let params;
-   
-    if(req.body.type){
-      params= {type: req.body.type}
-    }
-    if(req.body.genre){
-      params= {genre: { $in: req.body.genre }}
-    }
-    if(req.body.genre && req.body.type){
-      params= {type: req.body.type,genre: { $in: req.body.genre }}
-    }
+  GetRandomList: async (req, res, next) => {
+  
     try {
+      const page = req.query.page || 1;
+      const limit = req.query.limit || 12;
+  
+      let params = {};
+  
+      if (req.query.type) {
+        params["type"] = req.query.type;
+      }
+      if (req.query.genre) {
+        params["genre"] = { $in: [req.query.genre] };
+      }
+      if (req.query.title) {
+        params = {
+          title: {
+            $regex: new RegExp(req.query.title, "i"),
+          },
+        };
+      }
+      if (req.query.id) {
+        params = {
+          _id:new ObjectId(req.query.id)
+        };
+      }
+      
+      const count =!req.query.id ?await Movie.countDocuments(params):0
+
+      const totalPage = Math.ceil(count / limit);
+      const skip = (Number(page) - 1) * limit;
       // params =
-      const SearchQuery={title: {
-        $regex: new RegExp(req.body.title, 'i')
-      }}
-      let movie;
-      if ( req.body.type || req.body.genre) {
-        movie = await Movie.aggregate([
-          {
-            $match: params,
-          },
-          // { $sort: { title: -1 } },
-          { $skip: skip },
-          { $limit: limit },
+
+      let movie = await Movie.aggregate([
+        {
+          $match: params,
+        },
+        // { $sort: { title: -1 } },
+        { $skip: skip },
+        { $limit: limit },
         //   { $count: "total" },
-        ]);
-        console.log(movie.length)
-        res.status(200).json({result:movie,totalPage});
+      ]);
+      console.log(movie.length);
+      if (movie.length === 0) {
+        res.status(404).json({ message: "No record found" });
       }
-      else if(req.body.title){
-        movie = await Movie.aggregate([
-          {
-            $match:SearchQuery,
-          },
-          // { $sort: { title: -1 } },
-          { $skip: skip },
-          { $limit: limit },
-        //   { $count: "total" },
-        ]);
-        res.status(200).json({result:movie,totalPage});
-      }
-      else {
-        movie = await Movie.aggregate([
-          // { $sort: { title: -1 } },
-          { $skip: skip },
-          { $limit: limit },
-        //   { $count: "total" },
-        ]);
-        res.status(200).json({result:movie,totalPage});
+      if (movie.length > 0) {
+        res.status(200).json({ result: movie, totalPage });
       }
     } catch (error) {
       res.status(500).json(error);
       console.log(error);
     }
-   } catch (error) {
-    console.log(error);
-   }
- 
   },
-  Gegenrelist:async (req,res)=>{
-   try {
-    var x="Romance,Comedy,Drama,Harem,Music,Action,Sports,Fantasy,SileceOfLife,Supernatural,Adventure,Seinin,PostApocalyptic,Thriller,Shonen,Mecha,Mystery,Isekai,Historical,MagicalGirls,Hooror,Jdrama,Shojo,Idols,Food,MartialArts,Sgdrama,Family"
-    x=x.split(',');
+  Gegenrelist: async (req, res) => {
+    var x =
+      "Romance,Comedy,Drama,Harem,Music,Action,Sports,Fantasy,SileceOfLife,Supernatural,Adventure,Seinin,PostApocalyptic,Thriller,Shonen,Mecha,Mystery,Isekai,Historical,MagicalGirls,Hooror,Jdrama,Shojo,Idols,Food,MartialArts,Sgdrama,Family";
+    x = x.split(",");
     res.send(x);
-   } catch (error) {
-    console.log(error.message)
-   }
   },
 };
