@@ -11,26 +11,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.2.4",
-    "cheerio": "^1.0.0-rc.12",
-    "connect-history-api-fallback": "^2.0.0",
-    "cookie-parser": "^1.4.6",
+    "axios": "^1.6.8",
     "cors": "^2.8.5",
     "crypto-js": "^4.0.0",
     "csv-parser": "^3.0.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "express-fileupload": "^1.4.0",
-    "express-rate-limit": "^6.7.0",
-    "express-xml-bodyparser": "^0.3.0",
-    "imdb-api": "^4.4.1",
+    "joi": "^17.12.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^5.13.2",
-    "movie-trailer": "^3.0.0",
     "multer": "^1.4.5-lts.1",
     "nodemon": "^2.0.9"
-  },
-  "engines": {
-    "node": ">=14.20.1"
   }
 }
