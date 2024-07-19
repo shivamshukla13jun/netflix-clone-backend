@@ -1,5 +1,5 @@
 const axios=require("axios")
-const API_BASE = 'https://api.jikan.moe/v4/anime';
+const API_BASE = 'https://api.jikan.moe/v4';
 const API_URL = process.env.NODE_ENV === 'development' ? API_BASE : API_BASE;
 
 const Service = axios.create({

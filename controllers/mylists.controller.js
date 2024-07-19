@@ -1,47 +1,66 @@
 const mongoose = require("mongoose");
 const MyListModel = require("../models/MyListModel");
-module.exports = UserController = {
+module.exports  = {
   Add: async (req, res) => {
     try {
-      //    const exist= await User.findOne({userId:req.user._id,mylist:{$elemMatch:{id:req.body.listid}}})
-      const exist = await MyListModel.aggregate([
-        {
-          $match: {
-            userId: mongoose.Types.ObjectId(req.user._id), // Convert req.user._id to ObjectId if not already
-            content: {
-              $elemMatch: {
-                $eq: mongoose.Types.ObjectId(req.body.listid), // Convert req.body.listid to ObjectId if not already
-              },
-            },
-          },
-        },
+      console.log(req.user);
+      const userId = mongoose.Types.ObjectId(req.user.id);
+      const listId = mongoose.Types.ObjectId(req.body.listid);
+      let data = null;
+
+      // Check if the user's list already exists
+      const [exist] = await MyListModel.aggregate([
+        { $match: { userId: userId } },
+        { $limit: 1 }
       ]);
-      console.log("--------------------------------", exist);
-      if (exist.length > 0) {
-        return res.status(200).json({ result: exist[0]?.content });
-      } else {
-        let data = await MyListModel.findByIdAndUpdate(
-          { userId: req.user._id },
-          { $push: { content: req.body.listid } }
+
+      if (exist) {
+        // Check if the listId already exists in the content array
+        const isItemInList = await MyListModel.findOne({ 
+          userId: userId, 
+          content: listId 
+        });
+
+        if (isItemInList) {
+          return res.status(400).json({ message: 'Item already exists in the list' });
+        }
+
+        data = await MyListModel.findOneAndUpdate(
+          { userId: userId },
+          { $addToSet: { content: listId } }, // Use $addToSet to ensure uniqueness
+          { new: true }
         );
-        console.log({ data });
-        return res.status(200).json({ result: data[0]?.content });
+        return res.status(200).json({ result: data.content });
+      } else {
+        data = await MyListModel.create({
+          userId: userId,
+          content: [listId]
+        });
+        return res.status(200).json({ result: data.content });
       }
     } catch (error) {
-      console.log(error);
-      return res.status(500).json(error.message);
+      console.error(error);
+      return res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
   },
   Delete: async (req, res) => {
     try {
-        let data = await MyListModel.findByIdAndUpdate(
-            req.user._id,
-            { $pull: { content: mongoose.Types.ObjectId(req.query.listid) } }
-        );
+      const listId = req.query.listid;
+      if (!mongoose.Types.ObjectId.isValid(listId)) {
+        return res.status(400).send({ error: "Invalid list ID" });
+      }
+  
+      const data = await MyListModel.findOneAndUpdate(
+        { userId: req.user.id },
+        { $pull: { content: mongoose.Types.ObjectId(listId) } },
+        { new: true }
+      );
+  
+      if (!data) {
+        return res.status(404).send({ error: "List not found" });
+      }
 
-        console.log({ data });
-
-        return res.status(200).json({ message: "Item removed successfully" });
+        return res.status(200).json({ message: "Item removed successfully" ,data:data});
     } catch (error) {
         console.log(error);
         return res.status(500).json(error.message);
@@ -49,50 +68,44 @@ module.exports = UserController = {
 },
   GetAllUser: async (req, res) => {
     try {
-      let User;
-      if (req.query.mylist) {
-        User = await MyListModel.aggregate([
-          {
-            $match: {
-              userId: mongoose.Types.ObjectId(req?.user?._id),
-            },
+      let {isMylistpage=0}=req.query
+      const pipeline=[
+        {
+          $match: {
+            userId: mongoose.Types.ObjectId(req.user.id),
           },
-          {
-            $lookup: {
-              from: "movies",
-              foreignField: "_id",
-              localField: "content",
-              as: "content",
-            },
-          },
-          {
-            $project: {
-              userId: 1,
-              content: 1,
-            },
-          },
-        ]);
-        return res.status(200).json({ result: User[0]?.content });
-      } else {
-        User = await MyListModel.aggregate([
-          {
-            $match: {
-              userId: mongoose.Types.ObjectId(req?.user?._id),
-            },
-          },
-
-          {
-            $project: {
-              userId: 1,
-              content: 1,
-            },
-          },
-        ]);
-        return res.status(200).json({ result: User[0]?.content });
+        },
+      ]
+      isMylistpage==1 && pipeline.push({
+        $lookup:{
+          from:"movies",
+          localField:"content",
+          foreignField:"_id",
+          as :"content"
+        }
+      },{
+        $project:{
+          "content.title":1,
+          "content._id":1,
+          "content.lang":1,
+          "content.imageurl":1,
+          "content.poster":1
+        }
       }
+    )
+      pipeline.push({ $limit: 1 })
+      const [data] = await MyListModel.aggregate(pipeline);
+    
+      if (!data) {
+        return res.status(404).json({ message: "No data found" });
+      }
+    
+      console.log("mylists", data);
+      return res.status(200).json(data.content);
     } catch (error) {
-      console.log(error);
-      res.status(500).json(error);
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error", error });
     }
+    
   },
 };

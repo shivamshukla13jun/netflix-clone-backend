@@ -7,6 +7,7 @@ const UserSchema=mongoose.Schema({
     password:{type:String,required:true,unique:true},
     profilePic:{type:String,default:""},
     isAdmin:{type:Boolean,default:false},
+    permission:{type:String,enum:["user","admin"],default:"user"}
     // subscriptiontype:{type:String,required:true}
 }, {timestamps:true}
 )
