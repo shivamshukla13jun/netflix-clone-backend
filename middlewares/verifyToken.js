@@ -1,11 +1,13 @@
 const jwt=require('jsonwebtoken')
-
+console.log("SECRET_KEY",process.env.SECRET_KEY)
 
 function verify(req,res,next) {
-    const authHader=req.headers.token || req.body.token || req.query.token || req.cookies || req.cookies.token;
+    const authHader=req.headers.authorization
+  
     if(authHader){
         const token=authHader.split(" ")[1]
-        jwt.verify(token,process.env.SECRET_KEY,(err,user)=>{
+        console.log("token",token)
+        jwt.verify(token,process.env.JWT_SECRET,(err,user)=>{
             if(err) res.status(403).json("Token is not valid")
                 req.user=user;
                 next()

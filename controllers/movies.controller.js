@@ -1,4 +1,4 @@
-const { ObjectId} = require("mongoose");
+const mongoose = require("mongoose");
 const Movie = require("../models/Movie");
 const API_KEY = "efdd474fc85772c8ecc497550ca8a0ac";
 const imagePath = "https://image.tmdb.org/t/p/original";
@@ -47,20 +47,19 @@ module.exports = MoviesController = {
   FindById: async (req, res, next) => {
     try {
       console.log({ id: req.params.id });
-      const updatedMovie = await Movie.findById({ _id: req.params.id });
+      const updatedMovie = await Movie.findById(req.params.id).populate("genre");
       console.log(updatedMovie);
-      res.send(updatedMovie);
+      res.json({data:updatedMovie});
     } catch (error) {
       res.status(500).json(error);
       console.log(error);
     }
   },
   Update: async (req, res, next) => {
-    if (req.user.isAdmin) {
       try {
         const { img, imgTitle, imgSm, trailer, video } = req.body;
-        const updatedMovie = await Movie.findOneAndUpdate(
-          { year },
+        const updatedMovie = await Movie.findByIdAndUpdate(
+           req.params.id,
           { $set: req.body },
           { new: true }
         );
@@ -69,9 +68,7 @@ module.exports = MoviesController = {
         res.status(500).json(error);
         console.log(error);
       }
-    } else {
-      res.status(403).json("you are not allowed");
-    }
+   
   },
   UpdateById: async (req, res, next) => {
     if (req.user.isAdmin) {
@@ -91,17 +88,13 @@ module.exports = MoviesController = {
     }
   },
   Delete: async (req, res, next) => {
-    if (req.user.isAdmin) {
-      try {
+   try {
         await Movie.findByIdAndDelete(req.params.id);
         res.status(200).json("Mvie has been deleted");
       } catch (error) {
         res.status(500).json(error);
         console.log(error);
       }
-    } else {
-      res.status(403).json("you are not allowed");
-    }
   },
   GetAllList: async (req, res, next) => {
     if (req.user.isAdmin) {
@@ -119,8 +112,8 @@ module.exports = MoviesController = {
   GetRandomList: async (req, res, next) => {
   
     try {
-      const page = req.query.page || 1;
-      const limit = req.query.limit || 12;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit )|| 9;
   
       let params = {};
   
@@ -128,12 +121,12 @@ module.exports = MoviesController = {
         params["type"] = req.query.type;
       }
       if (req.query.genre) {
-        params["genre"] = { $in: [req.query.genre] };
+        params["genre"] = { $in: [new mongoose.Types.ObjectId(req.query.genre)] };
       }
-      if (req.query.title) {
+      if (req.query.q) {
         params = {
           title: {
-            $regex: new RegExp(req.query.title, "i"),
+            $regex: new RegExp(req.query.q, "i"),
           },
         };
       }
@@ -147,24 +140,27 @@ module.exports = MoviesController = {
 
       const totalPage = Math.ceil(count / limit);
       const skip = (Number(page) - 1) * limit;
-      // params =
 
       let movie = await Movie.aggregate([
         {
           $match: params,
+        },
+        {
+          $lookup:{
+            from:"categories",
+            localField:"genre",
+            foreignField:"_id",
+            as:"genre"
+          }
         },
         // { $sort: { title: -1 } },
         { $skip: skip },
         { $limit: limit },
         //   { $count: "total" },
       ]);
-      console.log(movie.length);
-      if (movie.length === 0) {
-        res.status(404).json({ message: "No record found" });
-      }
-      if (movie.length > 0) {
-        res.status(200).json({ result: movie, totalPage });
-      }
+      
+      return  res.status(200).json({ data: movie, totalPage });
+    
     } catch (error) {
       res.status(500).json(error);
       console.log(error);

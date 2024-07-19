@@ -5,7 +5,7 @@ module.exports = {
     try {
       const newCategory = new Category({
         name: req.body.name,
-        parent: req.body.parent
+        // parent: req.body.parent
       });
       const savedCategory = await newCategory.save();
       res.status(200).json(savedCategory);
@@ -16,11 +16,11 @@ module.exports = {
 
   Get: async (req, res) => {
     try {
-      const category = await Category.findById(req.params.id);
+      const category = await Category.find({});
       if (!category) {
         return res.status(404).json({ message: 'Category not found' });
       }
-      res.json(category);
+      res.json({data:category,message:"fetch successfullyu",});
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
