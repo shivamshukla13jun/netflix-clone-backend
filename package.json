@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "auto-protect": "^0.0.9",
+    "auto-protect": "^1.0.9",
     "axios": "^1.6.8",
     "cors": "^2.8.5",
     "crypto-js": "^4.0.0",
